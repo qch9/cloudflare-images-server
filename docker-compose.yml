@@ -1,0 +1,21 @@
+---
+services:
+  cloudflare-images-server:
+    command: python main.py
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    volumes:
+      - images:/var/www/images
+      - internalstate:/opt/code/cloudflare-images-server/_internalstate
+    environment:
+      HOSTNAME: http://localhost:8000
+      DEBUG: 1
+      PERSISTENCE: 1
+      CREATE_DEFAULT_ACCOUNT: 1
+
+volumes:
+  images:
+  internalstate:
