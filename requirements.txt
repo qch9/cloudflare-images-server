@@ -1,10 +1,7 @@
 starlette
-httpx
 uvicorn
-glom
 loguru
-pytest-asyncio
-pytest
 aiosqlite
 python-multipart
 pillow
+jinja2

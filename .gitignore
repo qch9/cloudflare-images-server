@@ -132,3 +132,5 @@ dmypy.json
 .idea/
 notes.txt
 images/
+videos/
+cloudflare.db

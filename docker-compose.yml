@@ -6,16 +6,21 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8000:8000
+      - 8010:8000
     volumes:
       - images:/var/www/images
+      - videos:/var/www/videos
       - internalstate:/opt/code/cloudflare-images-server/_internalstate
     environment:
-      HOSTNAME: http://localhost:8000
+      HOSTNAME: http://localhost:8010
       DEBUG: 1
       PERSISTENCE: 1
       CREATE_DEFAULT_ACCOUNT: 1
+      IMAGES_STORAGE_PATH: /var/www/images/
+      VIDEOS_STORAGE_PATH: /var/www/videos/
+      INTERNAL_STATE_PATH: _internalstate/cloudflare.db
 
 volumes:
   images:
+  videos:
   internalstate:

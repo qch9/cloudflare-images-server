@@ -32,6 +32,11 @@ async def setup_tables(db: aiosqlite.Connection):
             FOREIGN KEY (account_id) 
                 REFERENCES account (account_id)
         ) STRICT;
+        
+        CREATE TABLE IF NOT EXISTS video(
+            video_id TEXT PRIMARY KEY,
+            name TEXT
+        ) STRICT;
         '''
     )
     await db.commit()
