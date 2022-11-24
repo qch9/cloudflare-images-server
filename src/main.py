@@ -100,6 +100,41 @@ async def get_video_iframe(request: Request):
     )
 
 
+async def cloudflare_upload_directly(request: Request):
+    form = await request.form()
+    file = form.get('file')
+    file_path = pathlib.Path(server.state.config.images_storage) / file.filename
+    file_content = await file.read()
+
+    db = server.state.db_connection
+    image_id = str(uuid4())
+
+    await server.state.db_connection.execute('''
+        INSERT INTO image(image_id, name, uploaded_at, require_signed_urls, draft, account_id) VALUES(?, ?, ?, ?, ?, ?);
+    ''', (image_id, file.filename, int(dt.datetime.now().timestamp()), False, False, request.path_params['account_id']))
+    await server.state.db_connection.commit()
+
+    tasks = BackgroundTasks()
+    tasks.add_task(save_file, file_path, file_content)
+    tasks.add_task(convert_to_webp, file_path)
+
+    await db.execute(f'UPDATE image SET draft = 0, name = ? WHERE image_id = ?',
+                     (filename_without_ext(file.filename), image_id))
+    await db.commit()
+
+    result = {
+        "errors": [],
+        "messages": [],
+        "result": {
+            "id": image_id,
+        },
+        "success": True,
+    }
+    return JSONResponse(result, background=tasks)
+
+
+
+
 async def startup(cfg: Config):
     server.state.db_connection = await aiosqlite.connect(cfg.internal_db_name)
     server.state.config = cfg
@@ -118,7 +153,7 @@ server_routes = [
           methods=['POST']),
     Route('/cloudflare/{image_id:uuid}', cloudflare_upload_image, methods=['POST']),
     Route('/cloudflare/{account_id:str}/{image_id:uuid}/{variant:str}', cloudflare_get_image, methods=['GET']),
-    # TODO: https://developers.cloudflare.com/api/operations/cloudflare-images-upload-an-image-via-url
+    Route('/cloudflare/client/v4/accounts/{account_id:str}/images/v1', cloudflare_upload_directly, methods=['POST']),
     # cloudflare stream exp:
     Route('/experimental/{video_id:str}', get_video, methods=['GET']),
     Route('/experimental/{video_id:str}/iframe', get_video_iframe, methods=['GET']),
