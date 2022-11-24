@@ -8,6 +8,8 @@ import aiosqlite
 import uvicorn
 from starlette.applications import Starlette
 from starlette.background import BackgroundTasks
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
@@ -160,9 +162,13 @@ server_routes = [
 ]
 
 config = load_config()
+middleware = [
+    Middleware(CORSMiddleware, allow_origins=['*'])
+]
 server = Starlette(
     debug=config.debug,
     routes=server_routes,
+    middleware=middleware,
     on_startup=[partial(startup, config)],
     on_shutdown=[shutdown],
 )
